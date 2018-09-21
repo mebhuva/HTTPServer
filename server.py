@@ -10,6 +10,8 @@ from mimetools import Message
 import mimetypes 
 import os.path
 from os import path
+Dictionary = {}
+count = 1
 MAX_PACKET_SIZE = 1024
 def Responseheader(responsecode,requestedfile):
 	if responsecode == 200: 
@@ -31,6 +33,16 @@ Content-Type: text/html
 </html>
 """
 	return responsecontent
+def fileAccessCount(Dictionary, requestedfile,clientaddress):
+	if requestedfile in Dictionary:
+		Dictionary[requestedfile] = Dictionary[requestedfile] + 1
+	else:
+		Dictionary[requestedfile] = count 
+	fileaccesslog = requestedfile + "|" + '|'.join(str(x) for x in clientaddress) + '|' + str(Dictionary[requestedfile])
+	print fileaccesslog
+
+
+
 def readFile(requestedfilepath):
 	with open(requestedfilepath, "r") as filereader:
         	filedetail = filereader.read()
@@ -46,6 +58,7 @@ def responseclient(client, clientaddress):
 		#requestedfile = requestedfile[1:].strip()
 	#print requestedfile
 	if os.path.isfile(os.getcwd() + "/www/" + requestedfile) :
+		thread.start_new_thread(fileAccessCount, (Dictionary,requestedfile,clientaddress))
 		filedetail = readFile(os.getcwd() + "/www/" + requestedfile)
                	#print filedetail 
 		responsefile  = Responseheader(200,os.getcwd() + "/www/" + requestedfile)
